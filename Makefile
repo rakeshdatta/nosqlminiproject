@@ -12,7 +12,7 @@ java:
 	ajc -1.5 -inpath lib/jakarta-poi.jar:lib/junit.jar:lib/log4j.jar -d build src/*.java
 
 compile:
-	javac -cp lib/jakarta-poi.jar:lib/junit.jar:lib/log4j.jar -d build src/*.java
+	javac -cp lib/jakarta-poi.jar:lib/junit.jar:lib/log4j.jar:lib/json-simple-1.1.1.jar -d build src/*.java
 	
 vol:
 	java -cp ./build:lib/aspectjrt.jar Volume
@@ -26,6 +26,12 @@ run1:
 run2:
 	java -cp ./build:lib/aspectjrt.jar SMImplVersion2
 	
+run_server:
+	java -cp ./build:lib/aspectjrt.jar:lib/json-simple-1.1.1.jar SMHttpServer
+
+server:
+	java -cp ./build:lib/aspectjrt.jar MySM
+
 test1:
 	java -cp ./build:lib/aspectjrt.jar:lib/junit.jar junit.textui.TestRunner TestAcceptanceBasic
 	
