@@ -139,7 +139,6 @@ public class SMHttpServer {
 	    } else if (myRole.contains("SLAVE")) {
  		if (srcip.contains(masterIP)) {
 		        System.out.println("[INFO]: Slave Received "+method+" from Master.. ");
-                	response = handlePost (sm, body);
                         switch (method) {
                   	 case "POST":    response = handlePost (sm, body);
                                    	 break;
