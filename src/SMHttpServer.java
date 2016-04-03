@@ -159,7 +159,7 @@ public class SMHttpServer {
 		        if(!replication (myRole, method, body, myIP, masterIP)) {
                             System.out.println("[ERROR]: Master is not reachable..."+method+" not forwarded");
                             System.out.println("[ERROR]: "+partitionMode+" mode enabled");
-                            System.out.println("[ERROR]: "+method+" not forwarded to Master");
+                            System.out.println("[ERROR]: "+method+" not handled");
                             response = "ERROR\n";
                         } else {
                             System.out.println("[INFO]: Master is reachable..."+method+" forwarded.");
@@ -265,7 +265,7 @@ public class SMHttpServer {
 					               partitionMode.contains("CP")) {
                                                       	  System.out.println("[ERROR]: Network is Partitioned..");
                                                           System.out.println("[ERROR]: Slave is in CP mode..");
-                                                          System.out.println("[ERROR]: GET request wont be handled..");
+                                                          System.out.println("[ERROR]: GET request not handled..");
 					                  response = "ERROR\n";		
                                                   } else {
 						      SM.OID oid   = map.read(body);
