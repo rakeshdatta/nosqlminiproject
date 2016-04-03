@@ -113,6 +113,7 @@ public class MySM implements SM {
 
 	public class MyHashMap {
     		private Map<String, String> map = new HashMap<String, String>();
+    		private Map<String, String> map1 = new HashMap<String, String>();
 
     		MyHashMap(){
 
@@ -121,15 +122,18 @@ public class MySM implements SM {
     		public void create(SM.OID oid, String key){
         	   //System.out.println("guid: "+oid.toBytes());
         	   //String guid = new String (oid.getKey());
+
         	   String guid = new String (oid.toBytes());
-        	   System.out.println("[INFO]: map_create:guid = "+guid);
-        	   System.out.println("[INFO]: map_create:key  = "+key);
+        	   System.out.println("[INFO]: map_create:key/guid  = "+guid);
+        	   System.out.println("[INFO]: map_create:value     = "+key);
 
         	   map.put(guid, key);
+
+        	   map1.put(guid, "1");
     		};
 
     		public SM.OID read(String value){
-        	   System.out.println("[INFO]: map_read:value  = "+value);
+        	   //System.out.println("[INFO]: map_read:value  = "+value);
         	   String guid = null;
         
         	   for (Object o : map.keySet()) {
@@ -158,6 +162,35 @@ public class MySM implements SM {
 	           map.remove(guid);		
                 };
 
+    		public void increaseVer(String value){
+		   String guid = null;
+
+                   for (Object o : map.keySet()) {
+                      if (map.get(o).equals(value)) {
+                          guid = o.toString();
+           
+ 			  String version = map1.get(guid);
+                          int ver = Integer.parseInt(version);
+                          ver++;
+        	          map1.put(guid, String.valueOf(ver));
+			  
+                      }
+
+                 
+                   }
+                };
+
+		public String readVer(String value){
+                   String guid = null;
+                  
+                   for (Object o : map.keySet()) {
+                        if (map.get(o).equals(value)) {
+                            guid = o.toString();
+                            return map1.get(guid);
+                        }
+	           }
+                   return "0";
+                };
         }
 
 

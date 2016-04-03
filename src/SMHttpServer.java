@@ -56,10 +56,10 @@ public class SMHttpServer {
 
     public static boolean replication(String myRole, String method, String body, String srcIP, String destIP) throws Exception {
             String cmd = "";
-           
-	    if (isDead(destIP) == 0) {
+            System.out.println("[INFO]: Replication: Checking if "+destIP+" is alive");  
+	    if (isDead(destIP, 8080) == 0) {
                cmd = "curl -X "+method+" -d "+body+" "+destIP+":80 -H 'X-FORWARDED-FOR: "+srcIP+"'";
-	       System.out.println(cmd);	
+	       //System.out.println(cmd);	
    	       Runtime.getRuntime().exec(cmd);
                return true;
             } else {		
@@ -72,6 +72,10 @@ public class SMHttpServer {
                 String key = getKeyFromJson(body);
                 map.create (oid, key);
                 SM.OID found_oid  = map.read(key);
+                Record found   = (Record) sm.fetch(found_oid);
+		System.out.println("[INFO]: NewRecord  = ");
+                System.out.write(found.getBytes(0,0));
+                System.out.println("");
                 return "SUCCESS\n";
 
    }
@@ -82,6 +86,7 @@ public class SMHttpServer {
                 Record rec   = new Record(20);
                 rec.setBytes(body.getBytes());
                 SM.OID new_oid = (SM.OID) sm.update(oid, rec);
+		map.increaseVer(key);
                 Record found   = (Record) sm.fetch(new_oid);
                 System.out.print("[INFO]: UpdRecord:  New Record = ") ;
                 System.out.write(found.getBytes(0,0));
@@ -169,8 +174,9 @@ public class SMHttpServer {
     }
 
 
-    public static int isDead(String ip) throws Exception {
-           String cmd = "ping -c 1 "+ip;
+    public static int isDead(String ip, int port) throws Exception {
+           //String cmd = "ping -c 1 "+ip;
+           String cmd = "curl -X OPTIONS "+ip+":"+port+" --connect-timeout 5";
            Process p = Runtime.getRuntime().exec(cmd);
            int returnVal = p.waitFor();
            return returnVal;
@@ -180,6 +186,7 @@ public class SMHttpServer {
 
             HttpServer server = null;
 	    int port = 80;
+	    int admin_port = 8080;
             server = HttpServer.create(new InetSocketAddress(port), 0);
 
             /***** Load Configuration Properties *******************/
@@ -215,7 +222,7 @@ public class SMHttpServer {
 			String body = " ";
  			String cmd  = " ";
 
-                        System.out.println("[INFO]: Storage Manager Initialised");
+                        System.out.println("[INFO]: ================= NEW MESSAGE ==================");
 
 			System.out.println("[INFO]: URI: "+ msg.getRequestURI());
                         System.out.println("[INFO]: METHOD: "+ msg.getRequestMethod());
@@ -255,7 +262,7 @@ public class SMHttpServer {
                                 case "GET":     System.out.println("[INFO]: GET request received");
 						try{
 						  if (myRole.contains("SLAVE") && 
-						      (isDead(masterIP) != 0) && 
+						      (isDead(masterIP, 8080) != 0) && 
 					               partitionMode.contains("CP")) {
                                                       	  System.out.println("[ERROR]: Network is Partitioned..");
                                                           System.out.println("[ERROR]: Slave is in CP mode..");
@@ -268,7 +275,10 @@ public class SMHttpServer {
             					      System.out.write(rec.getBytes(0,0));
 					              System.out.println("");
             					      response = new String (rec.getBytes(0,0));
-            					      response = response + "\n";
+            					      response = response + ",\n"+"\"node_ip\":\""+myIP+"\""+",\n";
+
+						      String ver = map.readVer(body);	
+            					      response = response + "\"version\":\""+ver+"\""+"\n";
 						  }
 						} catch (Exception e) {
                                                   System.out.println("[ERROR]: GET request cant be handled");
@@ -301,9 +311,13 @@ public class SMHttpServer {
                                                 }
 
                                                 break;
+		                case "OPTIONS": System.out.println("[INFO]: HEARTBEAT Check.. Received OPTIONS");
+                                                response = "ALIVE";
+					
+						break;
 
                                 default:        System.out.println("[ERROR]: Method Not Supported");
-                                                response = "Method Not Supported\n";
+                                                response = "ALIVEMethod Not Supported\n";
 
                         }
                         msg.sendResponseHeaders(200, response.length());
@@ -317,7 +331,38 @@ public class SMHttpServer {
 		server.setExecutor(null); // creates a default executor
 		server.start();
 		System.out.println("[INFO]: HTTP Server started at port "+port);
-		System.out.println("========================================");
+		System.out.println("        ========================================");
+
+                /* Admin Server */
+		HttpServer adminserver = null;
+                adminserver = HttpServer.create(new InetSocketAddress(admin_port), 0);
+ 		HttpHandler adminhandler = new HttpHandler() {
+                    @Override
+                    public void handle(HttpExchange msg) throws IOException {
+			String resp = " ";
+	 		switch(msg.getRequestMethod()){
+			case "OPTIONS" :
+ 					System.out.println("[INFO]: HEARTBEAT Check.. Received OPTIONS");
+			        	resp = "ALIVE";
+
+                                 	break;
+
+			default: 
+					resp = "ALIVE";
+					break;
+			}
+		
+			msg.sendResponseHeaders(200, resp.length());
+                        OutputStream os2 = msg.getResponseBody();
+                        os2.write(resp.getBytes());
+                        os2.close();
+
+		    }
+		};
+
+		adminserver.createContext("/", adminhandler);
+		adminserver.setExecutor(null); // creates a default executor
+		adminserver.start();
 
   	}
 
