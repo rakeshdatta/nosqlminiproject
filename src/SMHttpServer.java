@@ -1,4 +1,12 @@
-
+/********************************************************
+ * AUTHOR      : Rakesh Datta                           *
+ * COURSE      : CMPE 281 Mini Project                  *
+ * DATE        : April 2016                             *
+ * DESCRIPTION : This File is the Entry point           *
+ *               It starts the HTTP server and handles  *
+ *               them                                   *
+ * *****************************************************/
+ 
 import java.util.*;
 import java.io.*;
 import java.net.*;
