@@ -59,7 +59,7 @@ public class MySM implements SM {
          * is used for (oid, primary key) mapping. 
          * Given the primary key this Map gives oid. The oid is then used
          * to fetch the entire record from SM.
-         *
+         */
 
 	public class MyHashMap {
     		private Map<String, String> map  = new HashMap<String, String>();
